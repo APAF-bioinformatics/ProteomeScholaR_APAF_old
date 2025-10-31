@@ -255,6 +255,7 @@ setMethod(f="removeProteinsWithOnlyOneReplicate"
 ##----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #'@export
+#'@exportMethods plotRle
 setGeneric(name="plotRle"
            , def=function( theObject, grouping_variable, yaxis_limit = c(), sample_label = NULL) {
              standardGeneric("plotRle")
@@ -308,6 +309,7 @@ setMethod(f="plotRle"
 ##----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #'@export
+#'@exportMethods plotRleList
 setGeneric(name="plotRleList"
            , def=function( theObject, list_of_columns, yaxis_limit = c()) {
              standardGeneric("plotRleList")
@@ -381,6 +383,7 @@ savePlotRleList <- function( input_list, prefix = "RLE", suffix = c("png", "pdf"
 ##----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #'@export
+#'@exportMethods plotPca
 setGeneric(name="plotPca"
            , def=function( theObject, grouping_variable, shape_variable, label_column, title, font_size ) {
              standardGeneric("plotPca")
@@ -422,6 +425,7 @@ setMethod(f="plotPca"
 ##----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #'@export
+#'@exportMethods plotPcaList
 setGeneric(name="plotPcaList"
            , def=function( theObject, grouping_variables_list, label_column, title, font_size ) {
              standardGeneric("plotPcaList")
@@ -460,35 +464,6 @@ setMethod(f="plotPcaList"
           })
 
 
-#' @export
-savePlotPcaList <- function( input_list, prefix = "PCA", suffix = c("png", "pdf"), output_dir ) {
-
-  list_of_filenames <- expand_grid( column=names(input_list), suffix=suffix)  |>
-    mutate( filename= paste0( "RLE", "_", column , ".", suffix))  |>
-    left_join( tibble( column =names( input_list)
-                       ,  plots= input_list )
-               , by=join_by(column ))
-
-
-  purrr::walk2( list_of_filenames$plots
-                , list_of_filenames$filename
-                , \(.x, .y){
-                  ggsave( plot=.x, filename= file.path(output_dir, .y))
-                } )
-
-             , signature=c("theObject"))
-
-#'@export
-setMethod(f="plotDensity"
-          , signature="gg"
-          , definition=function(theObject, grouping_variable, title = "", font_size = 8) {
-            # For gg class objects, create a copy and change its class to ggplot
-            gg_obj <- theObject
-            class(gg_obj) <- "ggplot"
-
-            # Then call the ggplot method
-            plotDensity(gg_obj, grouping_variable, title, font_size)
-          })
 
 #'@export
 setMethod(f="plotDensity"
@@ -1785,6 +1760,7 @@ summariseProteinObject <- function ( theObject) {
 ##----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #'@export
+#'@exportMethods plotDensity
 setGeneric(name="plotDensity"
            , def=function(theObject, grouping_variable, title = "", font_size = 8) {
              standardGeneric("plotDensity")
@@ -1873,60 +1849,8 @@ setMethod(f="plotDensity"
             return(combined_plot)
           })
 
-##----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-#'@export
-setGeneric(name="plotDensityList"
-           , def=function(theObject, grouping_variables_list, title = "", font_size = 8) {
-             standardGeneric("plotDensityList")
-           }
-           , signature=c("theObject"))
 
-#'@export
-setMethod(f="plotDensityList"
-          , signature="ProteinQuantitativeData"
-          , definition=function(theObject, grouping_variables_list, title = "", font_size = 8) {
 
-            # Create a list of density plots for each grouping variable
-            density_plots_list <- purrr::map(grouping_variables_list, function(group_var) {
-              tryCatch({
-                plotDensity(theObject,
-                           grouping_variable = group_var,
-                           title = title,
-                           font_size = font_size)
-              }, error = function(e) {
-                warning(sprintf("Error creating density plot for %s: %s", group_var, e$message))
-              return(NULL)
-                  })
-                              })
-
-            # Name the list elements with the grouping variables
-            names(density_plots_list) <- grouping_variables_list
-
-            # Remove any NULL elements (failed plots)
-            density_plots_list <- density_plots_list[!sapply(density_plots_list, is.null)]
-
-            return(density_plots_list)
-          })
-
-##----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-#' @export
-savePlotDensityList <- function(input_list, prefix = "Density", suffix = c("png", "pdf"), output_dir) {
-
-  list_of_filenames <- expand_grid(column = names(input_list), suffix = suffix) |>
-    mutate(filename = paste0(prefix, "_", column, ".", suffix)) |>
-    left_join(tibble(column = names(input_list),
-              plots = input_list),
-              by = join_by(column))
-
-  purrr::walk2(list_of_filenames$plots,
-               list_of_filenames$filename,
-               \(.x, .y) {
-                 ggsave(plot = .x, filename = file.path(output_dir, .y))
-               })
-
-  list_of_filenames
-}
 
 ##----------------------------------------------------------------------------------------------------------------------------------------------------------------------
