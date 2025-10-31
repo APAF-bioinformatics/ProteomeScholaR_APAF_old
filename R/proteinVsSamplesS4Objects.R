@@ -259,7 +259,7 @@ setGeneric(name="plotRle"
            , def=function( theObject, grouping_variable, yaxis_limit = c(), sample_label = NULL) {
              standardGeneric("plotRle")
            }
-           , signature=c("theObject", "grouping_variable", "yaxis_limit", "sample_label"))
+           , signature=c("theObject"))
 
 
 #'@export
@@ -312,7 +312,7 @@ setGeneric(name="plotRleList"
            , def=function( theObject, list_of_columns, yaxis_limit = c()) {
              standardGeneric("plotRleList")
            }
-           , signature=c("theObject", "list_of_columns", "yaxis_limit"))
+           , signature=c("theObject"))
 
 #'@export
 setMethod(f="plotRleList"
@@ -385,7 +385,7 @@ setGeneric(name="plotPca"
            , def=function( theObject, grouping_variable, shape_variable, label_column, title, font_size ) {
              standardGeneric("plotPca")
            }
-           , signature=c("theObject", "grouping_variable", "shape_variable", "label_column", "title", "font_size"))
+           , signature=c("theObject"))
 
 #'@export
 setMethod(f="plotPca"
@@ -426,7 +426,7 @@ setGeneric(name="plotPcaList"
            , def=function( theObject, grouping_variables_list, label_column, title, font_size ) {
              standardGeneric("plotPcaList")
            }
-           , signature=c("theObject", "grouping_variables_list", "label_column", "title", "font_size"))
+           , signature=c("theObject"))
 
 #'@export
 setMethod(f="plotPcaList"
@@ -476,20 +476,7 @@ savePlotPcaList <- function( input_list, prefix = "PCA", suffix = c("png", "pdf"
                   ggsave( plot=.x, filename= file.path(output_dir, .y))
                 } )
 
-  list_of_filenames
-
-}
-
-
-
-##----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-#'@export
-setGeneric(name="plotDensity"
-           , def=function(theObject, grouping_variable, title = "", font_size = 8) {
-             standardGeneric("plotDensity")
-           }
-           , signature=c("theObject", "grouping_variable", "title", "font_size"))
+             , signature=c("theObject"))
 
 #'@export
 setMethod(f="plotDensity"
@@ -581,7 +568,7 @@ setGeneric(name="plotDensityList"
            , def=function(theObject, grouping_variables_list, title = "", font_size = 8) {
              standardGeneric("plotDensityList")
            }
-           , signature=c("theObject", "grouping_variables_list", "title", "font_size"))
+           , signature=c("theObject"))
 
 #'@export
 setMethod(f="plotDensityList"
@@ -679,7 +666,7 @@ setGeneric(name="proteinTechRepCorrelation"
            , def=function( theObject,  tech_rep_num_column = NULL, tech_rep_remove_regex = NULL) {
              standardGeneric("proteinTechRepCorrelation")
            }
-           , signature=c("theObject", "tech_rep_num_column", "tech_rep_remove_regex"))
+           , signature=c("theObject"))
 
 #'@export
 setMethod( f = "proteinTechRepCorrelation"
@@ -725,7 +712,7 @@ setGeneric(name="plotPearson",
            def=function(theObject, tech_rep_remove_regex, correlation_group = NA  ) {
              standardGeneric("plotPearson")
            },
-           signature=c("theObject", "tech_rep_remove_regex", "correlation_group" ))
+           signature=c("theObject"))
 
 #' @export
 setMethod(f="plotPearson",
@@ -800,7 +787,7 @@ setGeneric(name = "createGridQC",
            def = function(theObject, pca_titles, density_titles, rle_titles, pearson_titles, save_path = NULL, file_name = "pca_density_rle_pearson_corr_plots_merged") {
              standardGeneric("createGridQC")
            },
-           signature = c("theObject", "pca_titles", "density_titles", "rle_titles", "pearson_titles", "save_path", "file_name"))
+           signature = c("theObject"))
 
 #' @export
 setMethod(f = "createGridQC",
@@ -826,9 +813,9 @@ setMethod(f = "createGridQC",
             }
 
             # Create basic plots without titles
-            createPcaPlot <- function(plot) {
+            createPcaPlot <- function(plot, xmin, xmax, ymin, ymax) {
               plot +
-                xlim(-40, 45) + ylim(-30, 25) +
+                xlim(xmin*1.01, xmax*1.01) + ylim(ymin*1.01, ymax*1.01) +
                 theme(text = element_text(size = 15),
                       panel.grid.major = element_blank(),
                       panel.grid.minor = element_blank(),
@@ -854,8 +841,11 @@ setMethod(f = "createGridQC",
               }
             }
 
-            createRlePlot <- function(plot) {
+            createRlePlot <- function(plot, ymin, ymax) {
               plot +
+                scale_y_continuous(limits = c(ymin*1.01, ymax*1.01)) +
+
+                #m(ymin*1.01, ymax*1.01) +
                 theme(text = element_text(size = 15),
                       axis.text.x = element_blank(),
                       axis.ticks.x = element_blank())
@@ -866,10 +856,39 @@ setMethod(f = "createGridQC",
                 theme(text = element_text(size = 15))
             }
 
-            # Create plots without titles
-            created_pca_plots <- lapply(theObject@pca_plots, createPcaPlot)
+            # Get min and max X- and Y-axes values for PCA plots
+            getPcaMinMax <- function( theObject ) {
+              pca_xmax <- purrr::map_dbl( theObject@pca_plots , \(x){ max( x$data$PC1 )} ) |> max()
+              pca_xmin <- purrr::map_dbl( theObject@pca_plots , \(x){ min( x$data$PC1 )} ) |> min()
+              pca_ymax <- purrr::map_dbl( theObject@pca_plots , \(x){ max( x$data$PC2 )} ) |> max()
+              pca_ymin <- purrr::map_dbl( theObject@pca_plots , \(x){ min( x$data$PC2 )} ) |> min()
+
+              return( list( xmin = pca_xmin , xmax = pca_xmax , ymin = pca_ymin , ymax = pca_ymax ) )
+            }
+
+
+            # Get min and max Y-axes values for RLE plots
+            getRleMinMax <- function(theObject) {
+              rle_ymax <- purrr::map_dbl(theObject@rle_plots, \(x) max(x$data$max)) |> max()
+              rle_ymin <- purrr::map_dbl(theObject@rle_plots, \(x) min(x$data$min)) |> min()
+
+              return(list(ymin = rle_ymin, ymax = rle_ymax))
+            }
+
+            pca_min_max <- getPcaMinMax( theObject )
+
+            created_pca_plots <- lapply(theObject@pca_plots, \(x) {
+              xmax <- max( x$data$PC1 )
+              xmin <- min( x$data$PC1 )
+              ymax <- max( x$data$PC2 )
+              ymin <- min( x$data$PC2 )
+
+              createPcaPlot(x, xmin, xmax, ymin, ymax) })
             created_density_plots <- lapply(theObject@density_plots, createDensityPlot)
-            created_rle_plots <- lapply(theObject@rle_plots, createRlePlot)
+
+
+            rle_min_max <- getRleMinMax( theObject )
+            created_rle_plots <- lapply(theObject@rle_plots, \(x){ createRlePlot(x, rle_min_max$ymin, rle_min_max$ymax) })
             created_pearson_plots <- lapply(theObject@pearson_plots, createPearsonPlot)
 
             # Create label plots
@@ -881,13 +900,13 @@ setMethod(f = "createGridQC",
             # Combine with labels above each row - modified to keep legends with their plots
             combined_plot <- (
               wrap_plots(pca_labels, ncol = 3) /
-              wrap_plots(created_pca_plots, ncol = 3) /
-              wrap_plots(density_labels, ncol = 3) /
-              wrap_plots(created_density_plots, ncol = 3) /
-              wrap_plots(rle_labels, ncol = 3) /
-              wrap_plots(created_rle_plots, ncol = 3) /
-              wrap_plots(pearson_labels, ncol = 3) /
-              wrap_plots(created_pearson_plots, ncol = 3)
+                wrap_plots(created_pca_plots, ncol = 3) /
+                wrap_plots(density_labels, ncol = 3) /
+                wrap_plots(created_density_plots, ncol = 3) /
+                wrap_plots(rle_labels, ncol = 3) /
+                wrap_plots(created_rle_plots, ncol = 3) /
+                wrap_plots(pearson_labels, ncol = 3) /
+                wrap_plots(created_pearson_plots, ncol = 3)
             ) +
               plot_layout(heights = c(0.1, 1, 0.1, 1, 0.1, 1, 0.1, 1))
 
@@ -914,7 +933,7 @@ setGeneric(name="normaliseBetweenSamples"
            , def=function( theObject, normalisation_method = NULL) {
              standardGeneric("normaliseBetweenSamples")
            }
-           , signature=c("theObject", "normalisation_method"))
+           , signature=c("theObject"))
 
 
 #'@export
@@ -987,7 +1006,7 @@ setGeneric(name="pearsonCorForSamplePairs"
            , def=function( theObject,   tech_rep_remove_regex = NULL, correlation_group = NA ) {
              standardGeneric("pearsonCorForSamplePairs")
            }
-           , signature=c("theObject", "tech_rep_remove_regex", "correlation_group"))
+           , signature=c("theObject"))
 
 #'@export
 setMethod(f="pearsonCorForSamplePairs"
@@ -1045,7 +1064,7 @@ setGeneric(name="getNegCtrlProtAnova"
                            , ruv_fdr_method = NULL ) {
              standardGeneric("getNegCtrlProtAnova")
            }
-           , signature=c("theObject", "ruv_grouping_variable", "num_neg_ctrl", "ruv_qval_cutoff", "ruv_fdr_method"))
+           , signature=c("theObject"))
 
 #'@export
 setMethod(f="getNegCtrlProtAnova"
@@ -1105,7 +1124,7 @@ setGeneric(name="getLowCoefficientOfVariationProteins"
                            , num_neg_ctrl = NULL ) {
              standardGeneric("getLowCoefficientOfVariationProteins")
            }
-           , signature=c("theObject", "percentage_as_neg_ctrl", "num_neg_ctrl"))
+           , signature=c("theObject"))
 
 
 
@@ -1159,7 +1178,7 @@ setGeneric(name="ruvCancor"
            , def=function( theObject, ctrl= NULL, num_components_to_impute=NULL, ruv_grouping_variable = NULL ) {
              standardGeneric("ruvCancor")
            }
-           , signature=c("theObject", "ctrl", "num_components_to_impute", "ruv_grouping_variable"))
+           , signature=c("theObject"))
 
 #'@export
 setMethod( f = "ruvCancor"
@@ -1221,7 +1240,7 @@ setGeneric(name="getRuvIIIReplicateMatrix"
            , def=function( theObject,  ruv_grouping_variable = NULL) {
              standardGeneric("getRuvIIIReplicateMatrix")
            }
-           , signature=c("theObject", "ruv_grouping_variable"))
+           , signature=c("theObject"))
 
 #'@export
 setMethod( f = "getRuvIIIReplicateMatrix"
@@ -1253,7 +1272,7 @@ setGeneric(name="ruvIII_C_Varying"
            , def=function( theObject, ruv_grouping_variable = NULL, ruv_number_k = NULL, ctrl = NULL)  {
              standardGeneric("ruvIII_C_Varying")
            }
-           , signature=c("theObject", "ruv_grouping_variable", "ruv_number_k", "ctrl"))
+           , signature=c("theObject"))
 
 #'@export
 setMethod( f = "ruvIII_C_Varying"
@@ -1319,11 +1338,7 @@ setGeneric(name="removeRowsWithMissingValuesPercent"
                            , proteins_intensity_cutoff_percentile = NULL ) {
              standardGeneric("removeRowsWithMissingValuesPercent")
            }
-           , signature=c("theObject"
-                         , "ruv_grouping_variable"
-                         , "groupwise_percentage_cutoff"
-                         , "max_groups_percentage_cutoff"
-                         , "proteins_intensity_cutoff_percentile" ))
+           , signature=c("theObject"))
 
 #'@export
 setMethod( f = "removeRowsWithMissingValuesPercent"
@@ -1391,7 +1406,7 @@ setGeneric(name="averageTechReps"
            , def=function( theObject, design_matrix_columns ) {
              standardGeneric("averageTechReps")
            }
-           , signature=c("theObject", "design_matrix_columns" ))
+           , signature=c("theObject"))
 
 #'@export
 #'@param theObject The object to be processed
@@ -1499,7 +1514,7 @@ setGeneric(name="chooseBestProteinAccession"
            , def=function(theObject, delim=NULL, seqinr_obj=NULL, seqinr_accession_column=NULL, replace_zero_with_na = NULL, aggregation_method = NULL) {
              standardGeneric("chooseBestProteinAccession")
            }
-           , signature=c("theObject", "delim", "seqinr_obj", "seqinr_accession_column"))
+           , signature=c("theObject"))
 
 #'@export
 #'@param theObject The object of class ProteinQuantitativeData
@@ -1625,7 +1640,7 @@ setGeneric(name="chooseBestProteinAccessionSumDuplicates"
            , def=function( theObject, delim, quant_columns_pattern, islogged ) {
              standardGeneric("chooseBestProteinAccessionSumDuplicates")
            }
-           , signature=c("theObject", "delim", "quant_columns_pattern", "islogged" ))
+           , signature=c("theObject"))
 
 #'@export
 setMethod( f = "chooseBestProteinAccessionSumDuplicates"
@@ -1662,7 +1677,7 @@ setGeneric(name="filterSamplesByProteinCorrelationThreshold"
            , def=function( theObject, pearson_correlation_per_pair = NULL, min_pearson_correlation_threshold = NULL ) {
              standardGeneric("filterSamplesByProteinCorrelationThreshold")
            }
-           , signature=c("theObject", "pearson_correlation_per_pair", "min_pearson_correlation_threshold" ))
+           , signature=c("theObject"))
 
 #'@export
 setMethod( f = "filterSamplesByProteinCorrelationThreshold"
@@ -1774,7 +1789,7 @@ setGeneric(name="plotDensity"
            , def=function(theObject, grouping_variable, title = "", font_size = 8) {
              standardGeneric("plotDensity")
            }
-           , signature=c("theObject", "grouping_variable", "title", "font_size"))
+           , signature=c("theObject"))
 
 #'@export
 setMethod(f="plotDensity"
@@ -1865,7 +1880,7 @@ setGeneric(name="plotDensityList"
            , def=function(theObject, grouping_variables_list, title = "", font_size = 8) {
              standardGeneric("plotDensityList")
            }
-           , signature=c("theObject", "grouping_variables_list", "title", "font_size"))
+           , signature=c("theObject"))
 
 #'@export
 setMethod(f="plotDensityList"
