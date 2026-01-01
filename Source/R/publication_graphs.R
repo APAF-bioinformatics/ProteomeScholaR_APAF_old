@@ -39,7 +39,7 @@ p_load(qvalue)
 p_load(ruv)
 p_load(mixOmics)
 
-p_load(ProteomeRiver)
+p_load(ProteomeScholaR)
 p_load(configr)
 p_load(logging)
 p_load(svglite)

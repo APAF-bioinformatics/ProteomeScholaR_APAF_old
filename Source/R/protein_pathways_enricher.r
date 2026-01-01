@@ -35,7 +35,7 @@ p_load(clusterProfiler)
 
 p_load(magrittr)
 p_load(optparse)
-p_load(ProteomeRiver)
+p_load(ProteomeScholaR)
 p_load(configr)
 p_load(logging)
 
