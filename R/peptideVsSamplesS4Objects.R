@@ -199,7 +199,7 @@ setGeneric(name="srlQvalueProteotypicPeptideClean"
            , def=function( theObject, qvalue_threshold = NULL, global_qvalue_threshold = NULL, choose_only_proteotypic_peptide = NULL, input_matrix_column_ids = NULL) {
              standardGeneric("srlQvalueProteotypicPeptideClean")
            }
-           , signature = c("theObject", "qvalue_threshold", "global_qvalue_threshold", "choose_only_proteotypic_peptide", "input_matrix_column_ids") )
+           , signature = c("theObject") )
 
 
 #'@export
@@ -271,7 +271,7 @@ setGeneric(name="rollUpPrecursorToPeptide"
            , def=function( theObject, core_utilisation = NULL) {
              standardGeneric("rollUpPrecursorToPeptide")
            }
-           , signature=c("theObject", "core_utilisation"))
+           , signature=c("theObject"))
 
 #'@export
 setMethod(f="rollUpPrecursorToPeptide"
@@ -319,7 +319,7 @@ setGeneric(name="peptideIntensityFiltering"
            , def=function( theObject, peptides_intensity_cutoff_percentile = NULL, peptides_proportion_of_samples_below_cutoff = NULL, core_utilisation = NULL) {
              standardGeneric("peptideIntensityFiltering")
            }
-           , signature=c("theObject", "peptides_intensity_cutoff_percentile", "peptides_proportion_of_samples_below_cutoff", "core_utilisation"))
+           , signature=c("theObject"))
 
 #'@export
 setMethod( f="peptideIntensityFiltering"
@@ -368,11 +368,7 @@ setGeneric(name="removePeptidesWithMissingValuesPercent"
                            , peptides_intensity_cutoff_percentile = NULL) {
              standardGeneric("removePeptidesWithMissingValuesPercent")
            }
-           , signature=c("theObject"
-                         , "grouping_variable"
-                         , "groupwise_percentage_cutoff"
-                         , "max_groups_percentage_cutoff"
-                         , "peptides_intensity_cutoff_percentile" ))
+           , signature=c("theObject"))
 
 #'@export
 setMethod( f = "removePeptidesWithMissingValuesPercent"
@@ -446,10 +442,7 @@ setGeneric(name="filterMinNumPeptidesPerProtein"
                            , core_utilisation = NULL ) {
              standardGeneric("filterMinNumPeptidesPerProtein")
            }
-           , signature=c("theObject"
-                         , "num_peptides_per_protein_thresh"
-                         , "num_peptidoforms_per_protein_thresh"
-                         , "core_utilisation"))
+           , signature=c("theObject"))
 
 #'@export
 #'@description
@@ -502,7 +495,7 @@ setGeneric( name="filterMinNumPeptidesPerSample"
             , def=function( theObject, peptides_per_sample_cutoff = NULL, core_utilisation = NULL, inclusion_list = NULL) {
               standardGeneric("filterMinNumPeptidesPerSample")
            }
-           , signature=c("theObject", "peptides_per_sample_cutoff", "core_utilisation", "inclusion_list" ))
+           , signature=c("theObject" ))
 
 #'@export
 setMethod( f="filterMinNumPeptidesPerSample"
@@ -547,7 +540,7 @@ setGeneric( name="removePeptidesWithOnlyOneReplicate"
             , def=function( theObject, replicate_group_column = NULL, core_utilisation = NULL) {
               standardGeneric("removePeptidesWithOnlyOneReplicate")
             }
-            , signature=c("theObject", "replicate_group_column", "core_utilisation" ))
+            , signature=c("theObject" ))
 
 #'@export
 setMethod( f="removePeptidesWithOnlyOneReplicate"
@@ -617,7 +610,7 @@ setGeneric( name="peptideMissingValueImputation"
             , def=function( theObject,  imputed_value_column = NULL, proportion_missing_values = NULL, core_utilisation = NULL) {
               standardGeneric("peptideMissingValueImputation")
             }
-            , signature=c("theObject", "imputed_value_column", "proportion_missing_values", "core_utilisation" ))
+            , signature=c("theObject" ))
 
 #'@export
 setMethod( f="peptideMissingValueImputation"

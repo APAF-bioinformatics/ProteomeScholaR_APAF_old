@@ -229,7 +229,7 @@ deAnalysisWrapperFunction <- function( theObject
   #   ungroup() %>%
   #   mutate( title = paste( comparison)) %>%
   #   mutate( plot = purrr:::map( data, \(x) {
-  #     printOneVolcanoPlotWithProteinLabel( input_table=  x$de_proteins_long
+  #     printOneVolcanoPlotWithProteinLabel( input_table=  x$de_proteins_longz
   #                                          , uniprot_table = uniprot_dat_cln |>
   #                                            mutate( gene_name = purrr::map_chr( gene_names
   #                                                                                , \(y) str_split(y, "; ")[[1]][1])) )
@@ -591,7 +591,7 @@ outputDeAnalysisResults <- function(de_analysis_results_list
     num_of_comparison_only_significant <- de_analysis_results_list$num_of_comparison_only_significant
 
     savePlot(num_sig_de_genes_barplot_only_significant,
-             base_path = de_output_dir,
+             base_dir = de_output_dir,
              plot_name = paste0(file_prefix, "_num_sda_entities_barplot_only_significant"),
              formats =  c("pdf", "png", "svg"),
              width = (num_of_comparison_only_significant + 2) *7/6,
@@ -693,7 +693,7 @@ outputDeAnalysisResults <- function(de_analysis_results_list
                 # gg_save_logging ( .y, file_name_part, plots_format)
 
                 savePlot( y
-                          , base_path = file.path( publication_graphs_dir, "Volcano_Plots")
+                          , base_dir = file.path( publication_graphs_dir, "Volcano_Plots")
                           , plot_name =  x
                           , formats = plots_format, width = 7, height = 7)
 
@@ -737,7 +737,7 @@ outputDeAnalysisResults <- function(de_analysis_results_list
     num_of_comparison_only_significant <- de_analysis_results_list$num_of_comparison_only_significant
 
     savePlot(plot = num_sig_de_genes_barplot_only_significant,
-             base_path = file.path(publication_graphs_dir, "NumSigDeMolecules"),
+             base_dir = file.path(publication_graphs_dir, "NumSigDeMolecules"),
              plot_name = paste0(file_prefix, "_num_sig_de_molecules."),
              formats = plots_format,
              width = (num_of_comparison_only_significant + 2) *7/6,
@@ -754,7 +754,7 @@ outputDeAnalysisResults <- function(de_analysis_results_list
     print("print bar plot")
 
     savePlot(num_sig_de_genes_barplot_with_not_significant,
-             base_path = file.path(publication_graphs_dir, "NumSigDeMolecules"),
+             base_dir = file.path(publication_graphs_dir, "NumSigDeMolecules"),
              plot_name = paste0(file_prefix, "_num_sig_de_molecules_with_not_significant"),
              formats = plots_format,
              width = (num_of_comparison_with_not_significant + 2) *7/6,
