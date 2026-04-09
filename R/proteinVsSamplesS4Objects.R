@@ -532,6 +532,39 @@ setGeneric(
 #' @export
 setMethod(
   f = "plotDensity",
+  signature = "ProteinQuantitativeData",
+  definition = function(theObject, grouping_variable, title = "", font_size = 8) {
+    # Generate PCA plot
+    pca_plot <- plotPca(theObject,
+      grouping_variable = grouping_variable,
+      shape_variable = NULL,
+      label_column = "",
+      title = title,
+      font_size = font_size
+    )
+
+    # Call plotDensity on the ggplot object
+    plotDensity(pca_plot, grouping_variable, title, font_size)
+  }
+)
+
+#' @export
+setMethod(
+  f = "plotDensity",
+  signature = "gg",
+  definition = function(theObject, grouping_variable, title = "", font_size = 8) {
+    # For gg class objects, create a copy and change its class to ggplot
+    gg_obj <- theObject
+    class(gg_obj) <- "ggplot"
+
+    # Then call the ggplot method
+    plotDensity(gg_obj, grouping_variable, title, font_size)
+  }
+)
+
+#' @export
+setMethod(
+  f = "plotDensity",
   signature = "ggplot",
   definition = function(theObject, grouping_variable, title = "", font_size = 8) {
     # First try to get data directly from the ggplot object's data element
@@ -1994,104 +2027,4 @@ summariseProteinObject <- function(theObject) {
 ## ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #' @export
-#' @exportMethods plotDensity
-setGeneric(
-  name = "plotDensity",
-  def = function(theObject, grouping_variable, title = "", font_size = 8) {
-    standardGeneric("plotDensity")
-  },
-  signature = c("theObject")
-)
-
-#' @export
-setMethod(
-  f = "plotDensity",
-  signature = "gg",
-  definition = function(theObject, grouping_variable, title = "", font_size = 8) {
-    # For gg class objects, create a copy and change its class to ggplot
-    gg_obj <- theObject
-    class(gg_obj) <- "ggplot"
-
-    # Then call the ggplot method
-    plotDensity(gg_obj, grouping_variable, title, font_size)
-  }
-)
-
-#' @export
-setMethod(
-  f = "plotDensity",
-  signature = "ggplot",
-  definition = function(theObject, grouping_variable, title = "", font_size = 8) {
-    # First try to get data directly from the ggplot object's data element
-    if (!is.null(theObject$data) && is.data.frame(theObject$data)) {
-      pca_data <- as_tibble(theObject$data)
-    } else {
-      # Fall back to other extraction methods
-      pca_data <- as_tibble(ggplot_build(theObject)$data[[1]])
-
-      # If the data doesn't have PC1/PC2, try to extract from the plot's environment
-      if (!("PC1" %in% colnames(pca_data) && "PC2" %in% colnames(pca_data))) {
-        # Try to get the data from the plot's environment
-        if (exists("data", envir = environment(theObject$mapping$x))) {
-          pca_data <- as_tibble(get("data", envir = environment(theObject$mapping$x)))
-        } else {
-          stop("Could not extract PCA data from the ggplot object")
-        }
-      }
-    }
-
-    # Check if grouping variable exists in the data
-    if (!grouping_variable %in% colnames(pca_data)) {
-      stop(sprintf("grouping_variable '%s' not found in the data", grouping_variable))
-    }
-
-    # Create PC1 boxplot
-    pc1_box <- ggplot(pca_data, aes(x = !!sym(grouping_variable), y = PC1, fill = !!sym(grouping_variable))) +
-      geom_boxplot(notch = TRUE) +
-      theme_bw() +
-      labs(
-        title = title,
-        x = "",
-        y = "PC1"
-      ) +
-      theme(
-        legend.position = "none",
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        text = element_text(size = font_size),
-        plot.margin = margin(b = 0, t = 5, l = 5, r = 5),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.background = element_blank()
-      )
-
-    # Create PC2 boxplot
-    pc2_box <- ggplot(pca_data, aes(x = !!sym(grouping_variable), y = PC2, fill = !!sym(grouping_variable))) +
-      geom_boxplot(notch = TRUE) +
-      theme_bw() +
-      labs(
-        x = "",
-        y = "PC2"
-      ) +
-      theme(
-        legend.position = "none",
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        text = element_text(size = font_size),
-        plot.margin = margin(t = 0, b = 5, l = 5, r = 5),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.background = element_blank()
-      )
-
-    # Combine plots with minimal spacing
-    combined_plot <- pc1_box / pc2_box +
-      plot_layout(heights = c(1, 1)) +
-      plot_annotation(theme = theme(plot.margin = margin(0, 0, 0, 0)))
-
-    return(combined_plot)
-  }
-)
-
-
 ## ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
