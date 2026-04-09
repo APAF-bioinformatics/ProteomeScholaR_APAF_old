@@ -229,7 +229,7 @@ deAnalysisWrapperFunction <- function( theObject
   #   ungroup() %>%
   #   mutate( title = paste( comparison)) %>%
   #   mutate( plot = purrr:::map( data, \(x) {
-  #     printOneVolcanoPlotWithProteinLabel( input_table=  x$de_proteins_longz
+  #     printOneVolcanoPlotWithProteinLabel( input_table=  x$de_proteins_long
   #                                          , uniprot_table = uniprot_dat_cln |>
   #                                            mutate( gene_name = purrr::map_chr( gene_names
   #                                                                                , \(y) str_split(y, "; ")[[1]][1])) )
