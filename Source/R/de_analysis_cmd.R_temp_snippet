@@ -1,0 +1,72 @@
+
+# Redefine getSignificantData locally to fix bug where fdr_qvalue was hardcoded
+# This overrides the version in ProteomeScholaR
+getSignificantData <- function(
+  list_of_de_tables,
+  list_of_descriptions,
+  row_id = uniprot_acc,
+  p_value_column = raw_pvalue,
+  q_value_column = fdr_qvalue,
+  fdr_value_column = fdr_value_bh_adjustment,
+  log_q_value_column = lqm,
+  log_fc_column = logFC,
+  comparison_column = "comparison",
+  expression_column = "log_intensity",
+  facet_column = analysis_type,
+  q_val_thresh = 0.05
+) {
+  get_row_binded_table <- function(de_table_list, description) {
+    output <- purrr::map(
+      de_table_list,
+      function(tbl) {
+        tbl |>
+          rownames_to_column(as_string(as_name(enquo(row_id)))) |>
+          dplyr::select(
+            {{ row_id }},
+            {{ p_value_column }},
+            {{ q_value_column }},
+            {{ fdr_value_column }},
+            {{ log_fc_column }}
+          )
+      }
+    ) |>
+      purrr::map2(names(de_table_list), \(.x, .y){
+        .x |>
+          mutate({{ comparison_column }} := .y)
+      }) |>
+      bind_rows() |>
+      mutate({{ facet_column }} := description) |>
+      separate_wider_delim({{ comparison_column }},
+        delim = "=",
+        names = c(
+          comparison_column,
+          expression_column
+        )
+      )
+  }
+
+  logfc_tbl_all <- purrr::map2(
+    list_of_de_tables, list_of_descriptions,
+    function(a, b) {
+      get_row_binded_table(de_table_list = a, description = b)
+    }
+  ) |>
+    bind_rows()
+
+  selected_data <- logfc_tbl_all |>
+    mutate({{ log_q_value_column }} := -log10({{ q_value_column }})) |>
+    dplyr::select(
+      {{ row_id }}, {{ log_q_value_column }}, {{ q_value_column }}, {{ p_value_column }}, {{ log_fc_column }},
+      {{ comparison_column }}, {{ expression_column }},
+      {{ facet_column }}
+    ) |>
+    dplyr::mutate(colour = case_when(
+      abs({{ log_fc_column }}) >= 1 & {{ q_value_column }} >= q_val_thresh ~ "orange",
+      abs({{ log_fc_column }}) >= 1 & {{ q_value_column }} < q_val_thresh ~ "purple",
+      abs({{ log_fc_column }}) < 1 & {{ q_value_column }} < q_val_thresh ~ "blue",
+      TRUE ~ "black"
+    )) |>
+    dplyr::mutate(colour = factor(colour, levels = c("black", "orange", "blue", "purple")))
+
+  selected_data
+}
