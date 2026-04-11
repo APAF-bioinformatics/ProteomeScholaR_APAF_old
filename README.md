@@ -1,6 +1,6 @@
 # ProteomeScholaR <img src="https://img.shields.io/badge/Version-0.9-green?style=for-the-badge" alt="Version 0.9">
 
-#PLEASE NOTE THIS PROJECT HAS BEEN ABSORBED AS PART OF THE DEVELOPMENT OF MULTISCHOLAR https://github.com/APAF-bioinformatics/MultiScholaR AND WILL NOT BE ACTIVELY WORKED UPON HERE IN THIS REPO ANYMORE
+# PLEASE NOTE THIS PROJECT HAS BEEN ABSORBED AS PART OF THE DEVELOPMENT OF MULTISCHOLAR https://github.com/APAF-bioinformatics/MultiScholaR AND WILL NOT BE ACTIVELY WORKED UPON HERE IN THIS REPO ANYMORE
 
 ## Quick Start
 
