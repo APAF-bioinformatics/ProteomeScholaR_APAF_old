@@ -1746,7 +1746,9 @@ runTestsContrasts <- function(data,
                               weights = NA,
                               treat_lfc_cutoff = NA,
                               eBayes_trend = FALSE,
-                              eBayes_robust = FALSE) {
+                              eBayes_robust = FALSE,
+                              block = NULL,
+                              correlation = NULL) {
   ff <- as.formula(formula_string)
   mod_frame <- model.frame(ff, design_matrix)
   design_m <- model.matrix(ff, mod_frame)
@@ -1768,7 +1770,26 @@ runTestsContrasts <- function(data,
     }
   }
 
-  fit <- lmFit(data_subset, design = design_m)
+  if (!is.null(block)) {
+    if (is.character(block) && length(block) == 1 && block %in% colnames(design_matrix)) {
+      block_val <- design_matrix[[block]]
+    } else {
+      block_val <- block
+    }
+    dupcor <- tryCatch({
+      limma::duplicateCorrelation(data_subset, design = design_m, block = block_val)
+    }, error = function(e) {
+      warning("Warning: duplicateCorrelation failed: ", e$message)
+      NULL
+    })
+    if (!is.null(dupcor)) {
+      fit <- lmFit(data_subset, design = design_m, block = block_val, correlation = dupcor$consensus.correlation)
+    } else {
+      fit <- lmFit(data_subset, design = design_m)
+    }
+  } else {
+    fit <- lmFit(data_subset, design = design_m)
+  }
 
   cfit <- contrasts.fit(fit, contrasts = contr.matrix)
 

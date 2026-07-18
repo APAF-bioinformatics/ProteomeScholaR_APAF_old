@@ -13,7 +13,8 @@ deAnalysisWrapperFunction <- function( theObject
                                        , args_group_pattern = NULL
                                        , args_row_id = NULL
                                        , qvalue_column = "fdr_qvalue"
-                                       , raw_pvalue_colum = "raw_pvalue") {
+                                       , raw_pvalue_colum = "raw_pvalue"
+                                       , block = NULL) {
 
   contrasts_tbl <- checkParamsObjectFunctionSimplify( theObject, "contrasts_tbl", NULL)
   formula_string <- checkParamsObjectFunctionSimplify( theObject, "formula_string", " ~ 0 + group")
@@ -104,7 +105,8 @@ deAnalysisWrapperFunction <- function( theObject
                                          weights = NA,
                                          treat_lfc_cutoff = as.double(treat_lfc_cutoff),
                                          eBayes_trend = as.logical(eBayes_trend),
-                                         eBayes_robust = as.logical(eBayes_robust))
+                                         eBayes_robust = as.logical(eBayes_robust),
+                                         block = block)
 
   contrasts_results_table <- contrasts_results$results
 
